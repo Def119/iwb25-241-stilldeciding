@@ -1,2 +1,2 @@
 # iwb25-241-stilldeciding
-Innovate with ballerina submission Whispr!
+Innovate with ballerina 2025 submission Whispr!
