@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Whispr - Zero Trust P2P Chat</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .app-container {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 800px;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .app-header {
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      color: white;
+      padding: 25px;
+      text-align: center;
+    }
+
+    .app-title {
+      font-size: 28px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .app-subtitle {
+      opacity: 0.9;
+      font-size: 14px;
+    }
+
+    .connection-panel {
+      padding: 30px;
+      background: white;
+    }
+
+    .connection-section {
+      margin-bottom: 30px;
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 10px;
+      background: #e74c3c;
+      transition: background 0.3s ease;
+    }
+
+    .status-dot.connected {
+      background: #2ecc71;
+      box-shadow: 0 0 10px rgba(46, 204, 113, 0.3);
+    }
+
+    .input-group {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .input-field {
+      flex: 1;
+      padding: 14px 18px;
+      border: 2px solid #e9ecef;
+      border-radius: 12px;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      background: #f8f9fa;
+    }
+
+    .input-field:focus {
+      outline: none;
+      border-color: #4facfe;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+    }
+
+    .btn {
+      padding: 14px 24px;
+      border: none;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      min-width: 120px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(79, 172, 254, 0.3);
+    }
+
+    .btn-secondary {
+      background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(250, 112, 154, 0.3);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    .chat-container {
+      display: none;
+      background: white;
+      height: 500px;
+      flex-direction: column;
+    }
+
+    .chat-container.active {
+      display: flex;
+    }
+
+    .chat-header {
+      padding: 20px 30px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .peer-info {
+      display: flex;
+      align-items: center;
+    }
+
+    .peer-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 12px;
+      font-weight: 600;
+    }
+
+    .chat-messages {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      background: #f8f9fa;
+    }
+
+    .message {
+      margin-bottom: 12px;
+      animation: messageSlide 0.3s ease;
+    }
+
+    .message.sent {
+      text-align: right;
+    }
+
+    .message-bubble {
+      display: inline-block;
+      padding: 12px 16px;
+      border-radius: 18px;
+      max-width: 70%;
+      word-wrap: break-word;
+    }
+
+    .message.received .message-bubble {
+      background: white;
+      color: #333;
+      border-bottom-left-radius: 4px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .message.sent .message-bubble {
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+
+    .chat-input-area {
+      padding: 20px;
+      background: white;
+      border-top: 1px solid #e9ecef;
+    }
+
+    .chat-input-group {
+      display: flex;
+      gap: 12px;
+    }
+
+    .chat-input {
+      flex: 1;
+      padding: 14px 18px;
+      border: 2px solid #e9ecef;
+      border-radius: 25px;
+      font-size: 14px;
+      background: #f8f9fa;
+      transition: all 0.3s ease;
+    }
+
+    .chat-input:focus {
+      outline: none;
+      border-color: #4facfe;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+    }
+
+    .send-btn {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      border: none;
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+
+    .send-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
+    }
+
+    .back-btn {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 12px;
+    }
+
+    .back-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: none;
+      box-shadow: none;
+    }
+
+    @keyframes messageSlide {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .connection-status {
+      text-align: center;
+      padding: 15px;
+      margin-top: 20px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .connection-status.connected {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .connection-status.connecting {
+      background: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeaa7;
+    }
+
+    .peer-status {
+      font-size: 12px;
+      opacity: 0.8;
+    }
+
+    @media (max-width: 600px) {
+      .app-container {
+        margin: 0;
+        border-radius: 0;
+        height: 100vh;
+      }
+      
+      .input-group {
+        flex-direction: column;
+      }
+      
+      .btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Connection Setup -->
+    <div id="setupPanel">
+      <div class="app-header">
+        <div class="app-title">Whispr</div>
+        <div class="app-subtitle">Zero trust e2ee p2p secure chat app</div>
+      </div>
+      
+      <div class="connection-panel">
+        <!-- Connect Section -->
+        <div class="connection-section">
+          <div class="section-title">
+            <div class="status-dot" id="serverStatus"></div>
+            Connect to Network
+          </div>
+          <div class="input-group">
+            <input id="userId" class="input-field" placeholder="Enter your username" />
+            <button class="btn btn-primary" onclick="connect()">Connect</button>
+          </div>
+        </div>
+
+        <!-- Call Peer Section -->
+        <div class="connection-section">
+          <div class="section-title">
+            <div class="status-dot" id="peerStatus"></div>
+            Start Chat
+          </div>
+          <div class="input-group">
+            <input id="peerId" class="input-field" placeholder="Friend's username" disabled />
+            <button class="btn btn-secondary" onclick="callPeer()" disabled id="callBtn">Start Chat</button>
+          </div>
+        </div>
+
+        <div id="connectionStatus" class="connection-status" style="display: none;"></div>
+      </div>
+    </div>
+
+    <!-- Chat Interface -->
+    <div id="chatPanel" class="chat-container">
+      <div class="chat-header">
+        <div class="peer-info">
+          <div class="peer-avatar" id="peerAvatar">?</div>
+          <div>
+            <div id="peerName">Unknown</div>
+            <div class="peer-status">Connected</div>
+          </div>
+        </div>
+        <button class="btn back-btn" onclick="disconnect()">← Back</button>
+      </div>
+      
+      <div class="chat-messages" id="chatMessages"></div>
+      
+      <div class="chat-input-area">
+        <div class="chat-input-group">
+          <input id="messageInput" class="chat-input" placeholder="Type your message..." 
+                 onkeypress="handleKeyPress(event)" />
+          <button class="send-btn" onclick="sendMessage()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M2,21L23,12L2,3V10L17,12L2,14V21Z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let ws, pc, dataChannel;
+    const signalingUrl = "ws://localhost:9092/signaling";
+    let userId, currentPeerId;
+    let isConnected = false;
+
+    // UI Elements
+    const setupPanel = document.getElementById('setupPanel');
+    const chatPanel = document.getElementById('chatPanel');
+    const serverStatus = document.getElementById('serverStatus');
+    const peerStatus = document.getElementById('peerStatus');
+    const connectionStatus = document.getElementById('connectionStatus');
+    const chatMessages = document.getElementById('chatMessages');
+    const messageInput = document.getElementById('messageInput');
+    const peerName = document.getElementById('peerName');
+    const peerAvatar = document.getElementById('peerAvatar');
+
+    function updateConnectionStatus(message, type = 'connecting') {
+      connectionStatus.style.display = 'block';
+      connectionStatus.textContent = message;
+      connectionStatus.className = `connection-status ${type}`;
+    }
+
+    function connect() {
+      userId = document.getElementById("userId").value.trim();
+      if (!userId) {
+        alert('Please enter a username');
+        return;
+      }
+
+      updateConnectionStatus('Connecting to server...', 'connecting');
+      
+      ws = new WebSocket(signalingUrl);
+
+      ws.onopen = () => {
+        console.log("Connected to signaling server");
+        serverStatus.classList.add('connected');
+        updateConnectionStatus('Connected to server! You can now start a chat.', 'connected');
+      };
+
+      ws.onmessage = async (event) => {
+        const msg = JSON.parse(event.data);
+        console.log("Got message:", msg);
+
+        switch (msg.messageType) {
+          case "signaling_connected":
+            ws.send(JSON.stringify({
+              messageType: "register",
+              userId: userId
+            }));
+            break;
+
+          case "registration_success":
+            console.log("Registered as", msg.userId);
+            document.getElementById('peerId').disabled = false;
+            document.getElementById('callBtn').disabled = false;
+            peerStatus.classList.add('connected');
+            break;
+
+          case "webrtc_offer":
+            await handleOffer(msg);
+            break;
+
+          case "webrtc_answer":
+            await pc.setRemoteDescription(new RTCSessionDescription(msg.sdp));
+            break;
+
+          case "webrtc_ice_candidate":
+            try {
+              await pc.addIceCandidate(msg.candidate);
+            } catch (err) {
+              console.error("Error adding ICE:", err);
+            }
+            break;
+        }
+      };
+
+      ws.onerror = (error) => {
+        console.error('WebSocket error:', error);
+        updateConnectionStatus('Connection failed. Please try again.', 'error');
+      };
+
+      ws.onclose = () => {
+        serverStatus.classList.remove('connected');
+        if (isConnected) {
+          updateConnectionStatus('Disconnected from server.', 'error');
+        }
+      };
+    }
+
+    function createPeerConnection() {
+      pc = new RTCPeerConnection({
+        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+      });
+
+      pc.onicecandidate = (event) => {
+        if (event.candidate) {
+          ws.send(JSON.stringify({
+            messageType: "webrtc_ice_candidate",
+            to: currentPeerId,
+            sender: userId,
+            candidate: event.candidate
+          }));
+        }
+      };
+
+      pc.onconnectionstatechange = () => {
+        console.log('Connection state:', pc.connectionState);
+        if (pc.connectionState === 'connected') {
+          switchToChatView();
+        }
+      };
+
+      dataChannel = pc.createDataChannel("chat");
+      dataChannel.onopen = () => {
+        console.log('Data channel opened');
+        switchToChatView();
+      };
+
+      dataChannel.onmessage = (event) => {
+        addMessage(event.data, false);
+      };
+
+      pc.ondatachannel = (event) => {
+        event.channel.onopen = () => {
+          console.log('Remote data channel opened');
+          switchToChatView();
+        };
+        event.channel.onmessage = (ev) => {
+          addMessage(ev.data, false);
+        };
+      };
+    }
+
+    async function callPeer() {
+      currentPeerId = document.getElementById("peerId").value.trim();
+      if (!currentPeerId) {
+        alert('Please enter a friend\'s username');
+        return;
+      }
+
+      updateConnectionStatus(`Calling ${currentPeerId}...`, 'connecting');
+      
+      createPeerConnection();
+
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+
+      ws.send(JSON.stringify({
+        messageType: "webrtc_offer",
+        to: currentPeerId,
+        sender: userId,
+        sdp: offer
+      }));
+    }
+
+    async function handleOffer(msg) {
+      currentPeerId = msg.sender;
+      updateConnectionStatus(`Accepting call from ${currentPeerId}...`, 'connecting');
+      
+      createPeerConnection();
+
+      await pc.setRemoteDescription(new RTCSessionDescription(msg.sdp));
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+
+      ws.send(JSON.stringify({
+        messageType: "webrtc_answer",
+        to: msg.sender,
+        sender: userId,
+        sdp: answer
+      }));
+    }
+
+    function switchToChatView() {
+      setupPanel.style.display = 'none';
+      chatPanel.classList.add('active');
+      peerName.textContent = currentPeerId;
+      peerAvatar.textContent = currentPeerId.charAt(0).toUpperCase();
+      messageInput.focus();
+      isConnected = true;
+    }
+
+    function addMessage(text, isSent = true) {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${isSent ? 'sent' : 'received'}`;
+      
+      const bubbleDiv = document.createElement('div');
+      bubbleDiv.className = 'message-bubble';
+      bubbleDiv.textContent = text;
+      
+      messageDiv.appendChild(bubbleDiv);
+      chatMessages.appendChild(messageDiv);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function sendMessage() {
+      const text = messageInput.value.trim();
+      if (!text || !dataChannel || dataChannel.readyState !== 'open') return;
+
+      dataChannel.send(text);
+      addMessage(text, true);
+      messageInput.value = '';
+    }
+
+    function handleKeyPress(event) {
+      if (event.key === 'Enter') {
+        sendMessage();
+      }
+    }
+
+    function disconnect() {
+      if (pc) {
+        pc.close();
+        pc = null;
+      }
+      if (dataChannel) {
+        dataChannel.close();
+        dataChannel = null;
+      }
+      
+      setupPanel.style.display = 'block';
+      chatPanel.classList.remove('active');
+      chatMessages.innerHTML = '';
+      isConnected = false;
+      currentPeerId = null;
+    }
+
+    // Focus on username input when page loads
+    window.onload = () => {
+      document.getElementById('userId').focus();
+    };
+  </script>
+</body>
+</html>
