@@ -5,7 +5,10 @@ A **peer-to-peer (P2P) messaging platform** prototype built using:
 - **Ballerina** → signalling server for establishing WebRTC connections  
 - **React Native (Expo)** → mobile app for user interface & P2P communication  
 - **Supabase Auth** → authentication & email verification  
-- **WebRTC** → decentralized messaging  
+- **WebRTC** → decentralized messaging
+
+  frontend repo : [https://github.com/Def119/p2pchat-frontend](https://github.com/Def119/p2pchat-frontend)
+  backend repo : [https://github.com/Def119/p2pchat-backend](https://github.com/Def119/p2pchat-backend)
 
 ⚠️ **Prototype stage**: Messaging is functional only for testing via `client.html`.  
 Currently working: account creation, login, profile setup, RSA key generation, QR (user id + public key) contact sharing, and peer connection test.  
