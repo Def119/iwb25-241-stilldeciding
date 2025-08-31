@@ -1,4 +1,0 @@
-[package]
-org = "user"  
-name = "p2pchat_backend"
-version = "0.1.0"
