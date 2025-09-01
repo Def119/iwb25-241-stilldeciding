@@ -45,12 +45,12 @@ Currently working: account creation, login, profile setup, RSA key generation, Q
 ### 1. Clone the Repository
 ```bash
 git clone https://github.com/Def119/iwb25-241-stilldeciding.git
-cd p2p-chat-app
+cd iwb25-241-stilldeciding
 ```
 
 ### 2. Setup & Run the Mobile App (React Native + Expo)
 ```bash
-cd mobile-app
+cd p2p-frontend
 npm install
 npx expo start or npm start
 ```
@@ -65,7 +65,7 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 
 ### 3. Run the Signalling Server (Ballerina)
 ```bash
-cd signalling-server
+cd p2p-backend
 bal run
 ``` 
 
@@ -74,7 +74,7 @@ bal run
 Currently, you can test messaging without the signalling/central server.
 
 ```bash
-cd frontend/webdemo
+cd p2p-frontend/webdemo
 open client.html   # or double-click to open in browser
 ```
 - Open `client.html` in **two browser tabs or windows**  
@@ -91,7 +91,7 @@ open client.html   # or double-click to open in browser
 ## 📂 Project Structure
 
 ```
-p2p-chat-app/
+iwb25-241-stilldeciding/
 │
 ├── p2p-backend/   # Ballerina-based WebRTC signalling server
 │   └── main.bal
